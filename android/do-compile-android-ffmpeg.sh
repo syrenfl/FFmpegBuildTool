@@ -210,12 +210,26 @@ if [ ! -d ${FF_FFMPEG_SOURCE_PATH} ]; then
 fi
 
 FF_OUTPUT_PATH=${FF_BUILD_ROOT}/build/${FF_BUILD_NAME}/output
+
+FF_SOURCE_PATH=${FF_BUILD_ROOT}/build/${FF_BUILD_NAME}/source
+FF_SOURCE_TXT=source.txt
+FF_SOURCE_TXT_PATH=${FF_SOURCE_PATH}/${FF_SOURCE_TXT}
+
 FF_SHARED_OUTPUT_PATH=${FF_BUILD_ROOT}/../build/${FF_BUILD_NAME}
+FF_SHARED_OUTPUT_SOURCE_PATH=${FF_BUILD_ROOT}/../build/${FF_BUILD_NAME}-source
 FF_TOOLCHAIN_PATH=${FF_BUILD_ROOT}/build/${FF_BUILD_NAME}/toolchain
 FF_TOOLCHAIN_SYSROOT_PATH=${FF_TOOLCHAIN_PATH}/sysroot
 
+rm -rf 
+
+rm -rf ${FF_OUTPUT_PATH}
+rm -rf ${FF_SOURCE_PATH}
+rm -rf ${FF_TOOLCHAIN_PATH}
+
 mkdir -p ${FF_OUTPUT_PATH}
+mkdir -p ${FF_SOURCE_PATH}
 mkdir -p ${FF_SHARED_OUTPUT_PATH}
+mkdir -p ${FF_SHARED_OUTPUT_SOURCE_PATH}
 
 echo "FF_FFMPEG_SOURCE_PATH = $FF_FFMPEG_SOURCE_PATH"
 echo ""
@@ -231,6 +245,8 @@ echo "FF_EXTRA_LDFLAGS = $FF_EXTRA_LDFLAGS"
 echo "FF_ASSEMBLER_SUB_DIRS = $FF_ASSEMBLER_SUB_DIRS"
 echo ""
 echo "FF_OUTPUT_PATH = $FF_OUTPUT_PATH"
+echo "FF_SOURCE_PATH = $FF_SOURCE_PATH"
+echo "FF_SHARED_OUTPUT_SOURCE_PATH = $FF_SHARED_OUTPUT_SOURCE_PATH"
 echo "FF_TOOLCHAIN_PATH = $FF_TOOLCHAIN_PATH"
 echo "FF_TOOLCHAIN_SYSROOT_PATH = $FF_TOOLCHAIN_SYSROOT_PATH"
 
@@ -296,27 +312,27 @@ FF_CFG_FLAGS="$FF_CFG_FLAGS --cc=clang --host-cflags= --host-ldflags="
 FF_CFG_FLAGS="$FF_CFG_FLAGS --cross-prefix=${FF_TOOLCHAIN_PATH}/bin/${FF_CROSS_PREFIX_NAME}-"
 FF_CFG_FLAGS="$FF_CFG_FLAGS --enable-cross-compile"
 FF_CFG_FLAGS="$FF_CFG_FLAGS --target-os=android"
-FF_CFG_FLAGS="$FF_CFG_FLAGS --enable-pic"
+# FF_CFG_FLAGS="$FF_CFG_FLAGS --enable-pic"
 
-if [ "$FF_ARCH" = "x86" ]; then
-    FF_CFG_FLAGS="$FF_CFG_FLAGS --disable-asm"
-else
-    FF_CFG_FLAGS="$FF_CFG_FLAGS --enable-asm"
-    FF_CFG_FLAGS="$FF_CFG_FLAGS --enable-inline-asm"
-fi
+# if [ "$FF_ARCH" = "x86" ]; then
+#     FF_CFG_FLAGS="$FF_CFG_FLAGS --disable-asm"
+# else
+#     FF_CFG_FLAGS="$FF_CFG_FLAGS --enable-asm"
+#     FF_CFG_FLAGS="$FF_CFG_FLAGS --enable-inline-asm"
+# fi
 
-case "$FF_BUILD_OPT" in
-    debug)
-        FF_CFG_FLAGS="$FF_CFG_FLAGS --disable-optimizations"
-        FF_CFG_FLAGS="$FF_CFG_FLAGS --enable-debug"
-        FF_CFG_FLAGS="$FF_CFG_FLAGS --disable-small"
-    ;;
-    *)
-        FF_CFG_FLAGS="$FF_CFG_FLAGS --enable-optimizations"
-        FF_CFG_FLAGS="$FF_CFG_FLAGS --disable-debug"
-        FF_CFG_FLAGS="$FF_CFG_FLAGS --enable-small"
-    ;;
-esac
+# case "$FF_BUILD_OPT" in
+#     debug)
+#         FF_CFG_FLAGS="$FF_CFG_FLAGS --disable-optimizations"
+#         FF_CFG_FLAGS="$FF_CFG_FLAGS --enable-debug"
+#         FF_CFG_FLAGS="$FF_CFG_FLAGS --disable-small"
+#     ;;
+#     *)
+#         FF_CFG_FLAGS="$FF_CFG_FLAGS --enable-optimizations"
+#         FF_CFG_FLAGS="$FF_CFG_FLAGS --disable-debug"
+#         FF_CFG_FLAGS="$FF_CFG_FLAGS --enable-small"
+#     ;;
+# esac
 
 # with ffmpeg config module
 export COMMON_FF_CFG_FLAGS=
@@ -363,7 +379,7 @@ echo "FF_OUTPUT_PATH = $FF_OUTPUT_PATH"
 
 cp config.* ${FF_OUTPUT_PATH}
 
-make install > /dev/null
+make install > ${FF_SOURCE_TXT_PATH}
 
 mkdir -p FF_OUTPUT_PATH/include/libffmpeg
 cp -f config.h FF_OUTPUT_PATH/include/libffmpeg/config.h
@@ -371,6 +387,73 @@ cp -f config.h FF_OUTPUT_PATH/include/libffmpeg/config.h
 echo "FF_LIB_CONFIG = $FF_OUTPUT_PATH/include/libffmpeg/config.h"
 echo "FFmpeg install success"
 
+echo ""
+echo "--------------------"
+echo "${RED}[*] generate ffmpeg source ${NC}"
+echo "--------------------"
+# cc_source=`grep '^CC' ${FF_SOURCE_TXT_PATH}`
+# for file_o in $cc_source 
+# do 
+#     if test $file_o != "CC"
+#     then
+#         file_name_h="${file_o%.o}.h"
+#         file_name_c="${file_o%.o}.c"
+#         file_dir=${file_o%/*}
+#         file_h="${FF_BUILD_ROOT}/${FF_BUILD_NAME}/${file_name_h}"
+#         file_c="${FF_BUILD_ROOT}/${FF_BUILD_NAME}/${file_name_c}"
+        
+#         if test -e ${file_h}
+#         then
+#             mkdir -p ${FF_SOURCE_PATH}/${file_dir}
+#             cp -rf ${file_h} ${FF_SOURCE_PATH}/${file_name_h}
+#         fi
+#         if test -e ${file_c}
+#         then
+#             mkdir -p ${FF_SOURCE_PATH}/${file_dir}
+#             cp -rf ${file_c} ${FF_SOURCE_PATH}/${file_name_c}
+#         fi
+#     fi
+# done
+
+# as_source=`grep '^AS' ${FF_SOURCE_TXT_PATH}`
+# for file_o in $as_source 
+# do 
+#     if test $file_o != "AS"
+#     then
+#         file_name_h="${file_o%.o}.h"
+#         file_name_c="${file_o%.o}.c"
+#         file_dir=${file_o%/*}
+#         file_h="${FF_BUILD_ROOT}/${FF_BUILD_NAME}/${file_name_h}"
+#         file_c="${FF_BUILD_ROOT}/${FF_BUILD_NAME}/${file_name_c}"
+        
+#         if test -e ${file_h}
+#         then
+#             mkdir -p ${FF_SOURCE_PATH}/${file_dir}
+#             cp -rf ${file_h} ${FF_SOURCE_PATH}/${file_name_h}
+#         fi
+#         if test -e ${file_c}
+#         then
+#             mkdir -p ${FF_SOURCE_PATH}/${file_dir}
+#             cp -rf ${file_c} ${FF_SOURCE_PATH}/${file_name_c}
+#         fi
+#     fi
+# done
+
+# inistall_source=`grep '^INSTALL' ${FF_SOURCE_TXT_PATH}`
+# for file in $inistall_source 
+# do 
+#     if test $file != "INSTALL"
+#     then
+#         file_dir=${file%/*}
+#         file_source="${FF_BUILD_ROOT}/${FF_BUILD_NAME}/${file}"
+
+#         if [[ $file =~ ".h" ]];
+#         then
+#             mkdir -p ${FF_SOURCE_PATH}/${file_dir}
+#             cp -rf ${file} ${FF_SOURCE_PATH}/${file}
+#         fi
+#     fi
+# done
 
 echo ""
 echo "--------------------"
@@ -434,8 +517,13 @@ mysedi() {
 rm -rf ${FF_SHARED_OUTPUT_PATH}
 mkdir -p ${FF_SHARED_OUTPUT_PATH}/lib/pkgconfig
 cp -r ${FF_OUTPUT_PATH}/include ${FF_SHARED_OUTPUT_PATH}/include
-cp ${FF_OUTPUT_PATH}/${FF_SPLAYER_SO_NAME} ${FF_SHARED_OUTPUT_PATH}/lib/${FF_SPLAYER_SO_NAME}
-cp ${FF_OUTPUT_PATH}/lib/pkgconfig/*.pc ${FF_SHARED_OUTPUT_PATH}/lib/pkgconfig
+cp -f ${FF_OUTPUT_PATH}/${FF_SPLAYER_SO_NAME} ${FF_SHARED_OUTPUT_PATH}/lib/${FF_SPLAYER_SO_NAME}
+cp -f ${FF_OUTPUT_PATH}/lib/pkgconfig/*.pc ${FF_SHARED_OUTPUT_PATH}/lib/pkgconfig
+
+rm -rf ${FF_SHARED_OUTPUT_SOURCE_PATH}
+mkdir -p ${FF_SHARED_OUTPUT_SOURCE_PATH}
+cp -rf ${FF_SOURCE_PATH}/ ${FF_SHARED_OUTPUT_SOURCE_PATH}
+
 
 echo "FF_OUTPUT_SHARE = ${FF_SHARED_OUTPUT_PATH}"
 echo "FF_OUTPUT_SHARE_INCLUDE = ${FF_SHARED_OUTPUT_PATH}/include"

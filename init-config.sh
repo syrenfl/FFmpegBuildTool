@@ -60,6 +60,11 @@ case "$FF_TARGET" in
         cat config/module.sh
         echo "config complete"
     ;;
+    test)
+        cp config/module-test.sh config/module.sh
+        cat config/module.sh
+        echo "config complete"
+    ;;
     clean)
         rm -rf config/module.sh
         echo "clean complete"
